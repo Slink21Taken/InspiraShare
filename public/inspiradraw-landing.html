@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InspiraDraw - Secure Collaborative Whiteboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="landing.css">
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <div class="bg-effects">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+    <div class="mesh-gradient"></div>
+
+    <nav id="navbar">
+        <div class="logo">InspiraDraw</div>
+        <ul class="nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#security">Security</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="#docs">Documentation</a></li>
+            <li><a href="#enter-room" class="nav-cta">Get Started</a></li>
+        </ul>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-badge">End-to-End Encrypted Collaboration</div>
+        <h1>InspiraDraw</h1>
+        <p class="tagline">Where Ideas Meet Privacy</p>
+        <p class="subtitle">Create, collaborate, and share your vision with absolute confidence. Military-grade encryption ensures your thoughts remain exclusively yours.</p>
+        <div class="cta-buttons">
+            <a href="#enter-room" class="btn btn-primary">Start Creating Free</a>
+            <a href="#demo" class="btn btn-secondary">Watch Demo</a>
+        </div>
+        
+        <div class="hero-visual">
+            <div class="demo-window" id="demo">
+                <div class="window-header">
+                    <div class="window-dot dot-1"></div>
+                    <div class="window-dot dot-2"></div>
+                    <div class="window-dot dot-3"></div>
+                </div>
+                <div class="window-content">
+                    <span>🎨 Your secure canvas awaits...</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Room entry section (scoped to .entry-container to avoid style collisions) -->
+    <section id="enter-room" class="features" aria-label="Enter Room">
+    <div class="entry-container pixel-corners">
+      <div class="logo">INSPIRADRAW</div>
+      <h1 class="title">ENTER GAME ROOM</h1>
+      <p class="subtitle">Join an existing room or create a new one</p>
+
+      <!-- Keep the same form UI, but we'll intercept it in JS -->
+      <form id="roomForm" action="/verify" method="POST" novalidate>
+        <div class="form-group">
+          <label for="roomId">ROOM ID</label>
+          <input
+            type="text"
+            id="roomId"
+            name="roomId"
+            placeholder="aaaa-bbbb-1234"
+            pattern="[a-zA-Z]{4}-[a-zA-Z]{4}-[0-9]{4}"
+            maxlength="14"
+            class="pixel-corners"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password">PASSWORD</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Enter room password"
+            class="pixel-corners"
+            required
+          >
+        </div>
+
+        <div class="button-group">
+          <button type="submit" class="btn-primary pixel-corners">
+            <strong>JOIN ROOM</strong>
+          </button>
+          <button type="button" class="btn-secondary pixel-corners" onclick="window.location.href='inspirashare-app.html'">
+            <strong>BACK</strong>
+          </button>
+        </div>
+      </form>
+
+      <div class="or-divider">
+        <span>OR</span>
+      </div>
+
+      <button class="generate-btn pixel-corners" id="generateRoom">
+        GENERATE NEW ROOM
+      </button>
+
+      <div class="security-note pixel-corners">
+        <span class="icon">🔐</span>
+        <strong>256-bit Encrypted</strong><br>
+        Your room is protected with military-grade encryption
+      </div>
+    </div>
+  </section>
+
+
+    <section class="stats-section">
+        <div class="stats-container">
+            <div class="stat-card fade-in">
+                <div class="stat-number">256-bit</div>
+                <div class="stat-label">AES Encryption</div>
+            </div>
+            <div class="stat-card fade-in">
+                <div class="stat-number">0ms</div>
+                <div class="stat-label">Data Collection</div>
+            </div>
+            <div class="stat-card fade-in">
+                <div class="stat-number">100%</div>
+                <div class="stat-label">Private & Secure</div>
+            </div>
+            <div class="stat-card fade-in">
+                <div class="stat-number">∞</div>
+                <div class="stat-label">Creative Freedom</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <div class="section-header">
+            <div class="section-label">Features</div>
+            <h2 class="section-title">Built for Privacy-First Collaboration</h2>
+            <p class="section-subtitle">Experience the perfect blend of powerful creative tools and uncompromising security. Your workspace, your rules.</p>
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature-card fade-in">
+                <span class="feature-icon">🔐</span>
+                <h3>Zero-Knowledge Architecture</h3>
+                <p>Every stroke and word is encrypted on your device before transmission. We can't see your content—and that's by design. True end-to-end encryption.</p>
+            </div>
+
+            <div class="feature-card fade-in">
+                <span class="feature-icon">⚡</span>
+                <h3>Real-Time Synchronization</h3>
+                <p>Collaborate seamlessly with instant updates across all devices. Changes appear in milliseconds while maintaining complete encryption throughout.</p>
+            </div>
+
+            <div class="feature-card fade-in">
+                <span class="feature-icon">🎨</span>
+                <h3>Professional Creative Suite</h3>
+                <p>Draw freehand, add text, create sticky notes, and more. A comprehensive toolkit designed for visual thinkers who won't compromise on security.</p>
+            </div>
+
+            <div class="feature-card fade-in">
+                <span class="feature-icon">🌊</span>
+                <h3>Frictionless Experience</h3>
+                <p>No accounts, no emails, no tracking. Generate a room, share the link, and start collaborating. Anonymous by default, secure by design.</p>
+            </div>
+
+            <div class="feature-card fade-in">
+                <span class="feature-icon">🚀</span>
+                <h3>Optimized Performance</h3>
+                <p>Buttery-smooth drawing with lag-free collaboration. Engineered for performance without sacrificing security or functionality.</p>
+            </div>
+
+            <div class="feature-card fade-in">
+                <span class="feature-icon">🛡️</span>
+                <h3>Advanced Access Control</h3>
+                <p>Optional password protection and custom permissions. Control exactly who can view and edit your collaborative workspace.</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="security-badge">
+        <span class="security-badge-icon">🔒</span>
+        <span>Encrypted</span>
+    </div>
+    <div class="bg-grid"></div>
+
+    
+        </div>
+    </section>
+</body>
+</html>

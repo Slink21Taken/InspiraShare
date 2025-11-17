@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InspiraShare</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="top-bar">
+        <div class="app-title">INSPIRASHARE</div>
+        <button class="modern-btn" onclick="shareRoom()">SHARE ROOM</button>
+    </div>
+    
+    <div class="main-container">
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <h3>ROOM ID</h3>
+                <input type="text" class="modern-input" id="roomIdInput" placeholder="Enter or generate room ID..." value="DEMO-ROOM-001">
+                <button class="modern-btn" style="width: 100%;" onclick="generateRoomId()">GENERATE NEW</button>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3>TOOLS</h3>
+                <div class="toolbar">
+                    <button class="modern-btn active" onclick="setMode('draw')" id="drawBtn">DRAW</button>
+                    <button class="modern-btn" onclick="setMode('text')" id="textBtn">TEXT</button>
+                    <button class="modern-btn" onclick="addStickyNote()" id="stickyBtn">STICKY</button>
+                </div>
+                <div class="color-picker">
+                    <div class="color-option active" style="background: #5eb3d6;" onclick="setColor('#5eb3d6')" title="Blue"></div>
+                    <div class="color-option" style="background: #6dd4a8;" onclick="setColor('#6dd4a8')" title="Green"></div>
+                    <div class="color-option" style="background: #d65e5e;" onclick="setColor('#d65e5e')" title="Red"></div>
+                    <div class="color-option" style="background: #f0c649;" onclick="setColor('#f0c649')" title="Yellow"></div>
+                    <div class="color-option" style="background: #c77dff;" onclick="setColor('#c77dff')" title="Purple"></div>
+                    <div class="color-option" style="background: #ffffff;" onclick="setColor('#ffffff')" title="White"></div>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3>ACTIONS</h3>
+                <button class="modern-btn" style="width: 100%; margin-bottom: 8px;" onclick="exportCanvas()">EXPORT</button>
+                <button class="modern-btn" style="width: 100%;" onclick="clearCanvas()">CLEAR</button>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3>USERS ONLINE</h3>
+                <ul class="user-list" id="userList">
+                    <li class="user-item">
+                        <div class="user-indicator"></div>
+                        Player_001 (You)
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3>CHAT</h3>
+                <div class="chat-section">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="chat-message">
+                            <span class="chat-username">System:</span>
+                            <span class="chat-text">Welcome to InspiraShare!</span>
+                        </div>
+                    </div>
+                    <div class="chat-input-container">
+                        <input type="text" class="chat-input" id="chatInput" placeholder="Type a message..." onkeypress="handleChatKeypress(event)">
+                        <button class="chat-send" onclick="sendMessage()">SEND</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="canvas-container" id="canvasContainer">
+            <canvas id="mainCanvas"></canvas>
+            <textarea id="textEditor" style="position:absolute; display:none; resize:none;"></textarea>
+            <div class="mode-indicator" id="modeIndicator">MODE: DRAW</div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="frontend.js" defer></script>
+</body>
+</html>
