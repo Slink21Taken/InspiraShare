@@ -1,22 +1,16 @@
 // room.js
-// Handles: socket.io auth, chat, user list, room URL parsing, share/join helpers.
-// Exposes: initRoom(), sendMessage(), addChatMessage(), updateUserList()
-// Dispatches: window event "room:ready" with { socket, roomId }
+// Handles socket.io auth, chat, user list, and dispatches events for drawing/sticky notes.
 
 let socket = null;
 let roomId = null;
-let connecting = false;
 
-// Parse path and query for room and password
+// Parse path for room id
 function resolveRoomFromUrl() {
   const parts = window.location.pathname.split('/').filter(Boolean);
-  const query = new URLSearchParams(window.location.search);
-  const pw = query.get('pw') || null;
-
   if (parts[0] === 'room' && parts[1]) {
-    roomId = decodeURIComponent(parts[1]);
+    return { roomId: decodeURIComponent(parts[1]) };
   }
-  return { roomId, pw };
+  return { roomId: null };
 }
 
 function getDisplayName() {
@@ -27,15 +21,12 @@ function getDisplayName() {
   return name;
 }
 
-export function initRoom() {
-  const { roomId: id, pw } = resolveRoomFromUrl();
-  if (!id) return; // Not in a room page
+function initRoom() {
+  const { roomId: id } = resolveRoomFromUrl();
+  if (!id) return;
   roomId = id;
 
-  if (connecting) return;
-  connecting = true;
-
-  // Configure socket.io client (global script /socket.io/socket.io.js must be included)
+  // Configure socket.io client
   socket = io({
     transports: ['websocket', 'polling'],
     reconnection: true,
@@ -48,18 +39,16 @@ export function initRoom() {
 
   // Attempt auth once connected
   socket.on('connect', () => {
-    socket.emit('auth', { room: roomId, password: pw, name });
+    socket.emit('auth', { room: roomId, name });
   });
 
   socket.on('auth-success', (data) => {
     addChatMessage('System', `Connected to ${roomId}`);
     updateUserList(data.users || []);
-    // Inform other modules that room is ready
     window.dispatchEvent(new CustomEvent('room:ready', { detail: { socket, roomId } }));
   });
 
   socket.on('auth-failed', (reason) => {
-    // reason can be: invalid-room, bad-password, not-found, error
     const msg = (reason === 'bad-password')
       ? 'Incorrect password.'
       : (reason === 'not-found')
@@ -77,6 +66,7 @@ export function initRoom() {
 
   socket.on('user-disconnected', (data) => {
     if (data?.name) addChatMessage('System', `${data.name} disconnected`);
+    updateUserList(data.users || []);
   });
 
   // Chat
@@ -84,7 +74,7 @@ export function initRoom() {
     addChatMessage(msg.name || 'Player', msg.message || '');
   });
 
-  // Drawing relay (forwarded to drawing.js listeners via window events)
+  // Drawing relay
   socket.on('user-draw-start', (payload) => {
     window.dispatchEvent(new CustomEvent('draw:remote-start', { detail: payload }));
   });
@@ -100,18 +90,13 @@ export function initRoom() {
     window.dispatchEvent(new CustomEvent('sticky:remote-added', { detail: note }));
   });
 
-  // Connection lifecycle
-  socket.on('reconnect_attempt', (attempt) => {
-    // Optionally show a subtle UI hint
-    // console.debug('Reconnecting...', attempt);
-  });
-  socket.on('reconnect', () => {
-    // Re-auth on successful reconnect
-    socket.emit('auth', { room: roomId, password: pw, name });
-  });
   socket.on('disconnect', (reason) => {
-    addChatMessage('System', `Disconnected: ${reason}`);
-  });
+  addChatMessage('System', `Disconnected: ${reason}`);
+  updateUserList([]); // clear UI list
+});
+
+
+
   socket.on('connect_error', (err) => {
     console.error('Socket connect error:', err.message);
   });
@@ -123,12 +108,10 @@ export function initRoom() {
       if (e.key === 'Enter') sendMessage();
     });
   }
-
-  connecting = false;
 }
 
 // Chat UI helpers
-export function addChatMessage(username, text) {
+function addChatMessage(username, text) {
   const chatMessages = document.getElementById('chatMessages');
   if (!chatMessages) return;
   const messageDiv = document.createElement('div');
@@ -141,7 +124,7 @@ export function addChatMessage(username, text) {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-export function sendMessage() {
+function sendMessage() {
   const input = document.getElementById('chatInput');
   if (!input) return;
   const message = input.value.trim();
@@ -154,7 +137,7 @@ export function sendMessage() {
   input.value = '';
 }
 
-export function updateUserList(users) {
+function updateUserList(users) {
   const userList = document.getElementById('userList');
   if (!userList) return;
   userList.innerHTML = '';
@@ -166,43 +149,8 @@ export function updateUserList(users) {
   });
 }
 
-// Optional helpers that were in your canvas file but belong to room controls
-export function generateRoomId() {
-  const chars = 'abcdefghijklmnopqrstuvwxyz';
-  const digits = '0123456789';
-  const pick = (src, n) => Array.from({ length: n }, () => src[Math.floor(Math.random() * src.length)]).join('');
-  const id = `${pick(chars, 4)}-${pick(chars, 4)}-${pick(digits, 4)}`;
-  const el = document.getElementById('roomIdInput');
-  if (el) el.value = id;
-}
-
-export function shareRoom() {
-  const el = document.getElementById('roomIdInput');
-  const id = el ? el.value : roomId || '[Room ID]';
-  const shareText = `Join my InspiraShare room!
-Room ID: ${id}
-Password: [Your Password]`;
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(shareText).then(() => {
-      addChatMessage('System', 'Room details copied to clipboard!');
-    });
-  } else {
-    alert(shareText);
-  }
-}
-
-export function joinRoom() {
-  const pwEl = document.getElementById('passwordInput');
-  const idEl = document.getElementById('roomIdInput');
-  const pw = pwEl ? pwEl.value : '';
-  const id = idEl ? idEl.value : '';
-  if (pw && id) {
-    addChatMessage('System', `Joined room: ${id} (Demo mode)`);
-  } else {
-    addChatMessage('System', 'Please enter both room ID and password!');
-  }
-}
-
-// Convenience exports for other modules (if needed)
-export function getSocket() { return socket; }
-export function getRoomId() { return roomId; }
+// Exports
+window.initRoom = initRoom;
+window.addChatMessage = addChatMessage;
+window.sendMessage = sendMessage;
+window.updateUserList = updateUserList;

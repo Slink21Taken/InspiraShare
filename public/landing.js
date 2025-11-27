@@ -1,100 +1,201 @@
-// /public/js/room-landing.js
 
-function isValidPattern(value, pattern) {
-  try {
-    const re = new RegExp(pattern);
-    return re.test(value);
-  } catch {
-    return true; // if pattern invalid or missing, don't block
-  }
+function isValidRoomPattern(value) {
+  const pattern = /^[a-zA-Z]{4}-[a-zA-Z]{4}-[0-9]{4}$/;
+  return pattern.test(value);
 }
+function handleLandingForm() {
+  const form = document.getElementById('roomForm');
+  const roomInput = document.getElementById('roomId');
+  const passwordInput = document.getElementById('password');
 
-export function handleLandingForm({
-  formSelector,
-  roomIdSelector,
-  passwordSelector,
-  verifyUrl = '/verify'
-}) {
-  const form = document.querySelector(formSelector);
-  const roomInput = document.querySelector(roomIdSelector);
-  const pwInput = document.querySelector(passwordSelector);
-
-  if (!form || !roomInput || !pwInput) return;
+  if (!form || !roomInput || !passwordInput) return;
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-
     const roomId = roomInput.value.trim();
-    const password = pwInput.value;
+    const password = passwordInput.value;
 
     if (!roomId || !password) {
-      alert('Please enter both room ID and password.');
+      alert('Please enter both Room ID and Password.');
       return;
     }
 
-    const pattern = roomInput.getAttribute('pattern');
-    if (pattern && !isValidPattern(roomId, pattern)) {
-      alert('Room ID format is invalid. Expected: aaaa-bbbb-1234');
-      return;
-    }
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn?.innerHTML || 'JOIN ROOM';
+    if (submitBtn) submitBtn.innerHTML = '<strong>CONNECTING...</strong>';
+    form.style.pointerEvents = 'none';
 
     try {
-      const res = await fetch(verifyUrl, {
+      const res = await fetch('/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ roomId, password })
       });
-
-      // Expect JSON response: { exists: boolean, validPassword: boolean }
       const data = await res.json();
-
-      if (!res.ok) {
-        // Server-side validation error
-        alert(data?.error || 'Verification failed.');
-        return;
-      }
-
-      if (!data.exists) {
-        // Room does not exist: create it first, then redirect to room page with pw
-        const createRes = await fetch('/room', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ room: roomId, password })
-        });
-        const createData = await createRes.json();
-        if (!createRes.ok || !createData?.success) {
-          alert(createData?.error || 'Failed to create room.');
-          return;
-        }
-        // Redirect to the room page and pass pw in query for initial auth
-        window.location.href = `/room/${encodeURIComponent(roomId)}?pw=${encodeURIComponent(password)}`;
-        return;
-      }
+      if (!res.ok) throw new Error(data?.error || 'Verification failed');
 
       if (!data.validPassword) {
-        alert('Incorrect password for this room.');
+        alert('❌ Incorrect password.');
+        if (submitBtn) submitBtn.innerHTML = originalText;
+        form.style.pointerEvents = '';
         return;
       }
 
-      // Success: room exists and password valid -> redirect to room page and pass pw
-      window.location.href = `/room/${encodeURIComponent(roomId)}?pw=${encodeURIComponent(password)}`;
+      window.location.href = data.redirect;
     } catch (err) {
-      console.error('Landing form error:', err);
-      alert('Network error. Please try again.');
+      alert(`⚠️ Error: ${err.message}`);
+      if (submitBtn) submitBtn.innerHTML = originalText;
+      form.style.pointerEvents = '';
     }
   });
 }
 
-export function bindRoomGenerator({ buttonSelector, targetInputSelector }) {
-  const btn = document.querySelector(buttonSelector);
-  const target = document.querySelector(targetInputSelector);
-  if (!btn || !target) return;
+document.addEventListener('DOMContentLoaded', () => {
+  handleLandingForm();
+});
 
-  btn.addEventListener('click', () => {
-    const chars = 'abcdefghijklmnopqrstuvwxyz';
-    const digits = '0123456789';
-    const pick = (src, n) => Array.from({ length: n }, () => src[Math.floor(Math.random() * src.length)]).join('');
-    const roomId = `${pick(chars, 4)}-${pick(chars, 4)}-${pick(digits, 4)}`;
-    target.value = roomId;
+
+// Generate random room ID
+function bindRoomGenerator() {
+  const btn = document.getElementById('generateRoom');
+  const roomInput = document.getElementById('roomId');
+  const passwordInput = document.getElementById('password');
+
+  if (!btn || !roomInput || !passwordInput) {
+    console.warn('Room generator elements not found');
+    return;
+  }
+
+  btn.addEventListener('click', async () => {
+    const roomId = roomInput.value.trim();
+    const password = passwordInput.value.trim();
+
+    if (!roomId || !password) {
+      alert('Please enter both Room ID and Password before creating.');
+      return;
+    }
+    btn.innerHTML = '<strong>CREATING...</strong>';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomId, password })
+      });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data?.error || 'Request failed');
+
+      if (!data.validPassword) {
+        alert('❌ Password invalid or room already exists with a different password.');
+      } else {
+        alert('✓ Room verified/created successfully!');
+        window.location.href = data.redirect;
+      }
+    } catch (err) {
+      console.error(err);
+      alert(`⚠️ Error: ${err.message}`);
+    } finally {
+      btn.innerHTML = '<strong>GENERATE ROOM</strong>';
+      btn.disabled = false;
+    }
   });
 }
+
+function initSmoothScroll() {
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      const href = this.getAttribute('href');
+      if (href === '#') return;
+
+      const target = document.querySelector(href);
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+}
+function initNavbar() {
+  const navbar = document.getElementById('navbar');
+  if (!navbar) return;
+
+  let lastScroll = 0;
+  window.addEventListener('scroll', () => {
+    const currentScroll = window.pageYOffset;
+
+    if (currentScroll > 100) {
+      navbar.classList.add('scrolled');
+    } else {
+      navbar.classList.remove('scrolled');
+    }
+    if (currentScroll > lastScroll && currentScroll > 300) {
+      navbar.style.transform = 'translateY(-100%)';
+    } else {
+      navbar.style.transform = 'translateY(0)';
+    }
+
+    lastScroll = currentScroll;
+  });
+}
+function initScrollAnimations() {
+  const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
+  }, observerOptions);
+
+  document.querySelectorAll('.fade-in, .feature-card, .stat-card').forEach(el => observer.observe(el));
+}
+
+// Animate gradient
+function initGradientOrbs() {
+  const orbs = document.querySelectorAll('.gradient-orb');
+
+  orbs.forEach((orb, index) => {
+    const baseX = Math.random() * 100;
+    const baseY = Math.random() * 100;
+    const speed = 30000 + index * 10000;
+
+    orb.style.left = baseX + '%';
+    orb.style.top = baseY + '%';
+
+    setInterval(() => {
+      const newX = Math.random() * 100;
+      const newY = Math.random() * 100;
+      orb.style.left = newX + '%';
+      orb.style.top = newY + '%';
+    }, speed);
+  });
+}
+
+// Handle URL error 
+function handleUrlErrors() {
+  const params = new URLSearchParams(window.location.search);
+  const error = params.get('error');
+
+  if (error === 'auth') {
+    alert('❌ Authentication failed.\n\nPlease check your Room ID and Password.');
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+}
+
+// Initialize everything
+document.addEventListener('DOMContentLoaded', () => {
+  handleUrlErrors();
+  handleLandingForm();
+  bindRoomGenerator();
+  initSmoothScroll();
+  initNavbar();
+  initScrollAnimations();
+  initGradientOrbs();
+
+  console.log('🎨 InspiraDraw landing page initialized');
+});
+
+//Maybe it will be useful
+window.handleLandingForm = handleLandingForm;
+window.bindRoomGenerator = bindRoomGenerator;

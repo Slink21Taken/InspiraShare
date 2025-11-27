@@ -3,13 +3,12 @@
   "version": "1.0.0",
   "main": "frontend.js",
   "scripts": {
-  "start": "concurrently \"pocketbase.exe serve\" \"node server.mjs\"",
-  "dev": "concurrently \"pocketbase.exe serve\" \"node server.mjs\"",
-  "pocketbase": "pocketbase.exe serve",
-  "server": "node server.mjs",
-  "test": "echo \"Error: no test specified\" && exit 1"
-}
-,
+    "start": "concurrently \"pocketbase.exe serve\" \"node server.mjs\"",
+    "dev": "concurrently \"pocketbase.exe serve\" \"node server.mjs\"",
+    "pocketbase": "pocketbase.exe serve",
+    "server": "node server.mjs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -21,6 +20,7 @@
     "argon2": "^0.44.0",
     "bcrypt": "^6.0.0",
     "concurrently": "^8.2.2",
+    "cookie-parser": "^1.4.7",
     "express": "^5.1.0",
     "firebase": "^12.5.0",
     "jsonwebtoken": "^9.0.2",

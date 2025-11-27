@@ -61,7 +61,7 @@
       <p class="subtitle">Join an existing room or create a new one</p>
 
       <!-- Keep the same form UI, but we'll intercept it in JS -->
-      <form id="roomForm" action="/verify" method="POST" novalidate>
+      <form id="roomForm" novalidate>
         <div class="form-group">
           <label for="roomId">ROOM ID</label>
           <input
@@ -188,8 +188,16 @@
     </div>
     <div class="bg-grid"></div>
 
-    
+
         </div>
     </section>
+
+    <script src="landing.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            window.handleLandingForm();
+            window.bindRoomGenerator();
+        });
+    </script>
 </body>
 </html>

@@ -81,6 +81,12 @@
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="frontend.js" defer></script>
+    <script src="room.js"></script>
+    <script src="drawing.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            window.initRoom();
+        });
+    </script>
 </body>
 </html>
